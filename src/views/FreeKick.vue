@@ -47,9 +47,9 @@
             class="image-input"
           />
           <div class="preset-goalkeepers">
-            <button @click="goalkeeperImage = '/goalkeeper-default.svg'" class="preset-btn">Default</button>
-            <button @click="goalkeeperImage = '/goalkeeper-classic.svg'" class="preset-btn">Classic</button>
-            <button @click="goalkeeperImage = '/goalkeeper-modern.svg'" class="preset-btn">Modern</button>
+            <button @click="goalkeeperImage = '/football/goalkeeper-default.svg'" class="preset-btn">Default</button>
+            <button @click="goalkeeperImage = '/football/goalkeeper-classic.svg'" class="preset-btn">Classic</button>
+            <button @click="goalkeeperImage = '/football/goalkeeper-modern.svg'" class="preset-btn">Modern</button>
           </div>
         </div>
 
@@ -147,7 +147,7 @@ export default {
       goalChance: 0.5,
       goalOdds: '1.8',
       missOdds: '1.8',
-      goalkeeperImage: '/goalkeeper-default.svg',
+      goalkeeperImage: '/football/goalkeeper-default.svg',
       ballStyle: {
         left: '50%',
         bottom: '20px',
