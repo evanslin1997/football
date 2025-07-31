@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>足球罰球遊戲 - 測試版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #2E8B57, #228B22);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .game-container {
+            background: rgba(255,255,255,0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 800px;
+            width: 90%;
+        }
+        .title {
+            margin-bottom: 30px;
+        }
+        .title h1 {
+            color: #2c5530;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .field {
+            position: relative;
+            width: 100%;
+            height: 400px;
+            background: linear-gradient(to bottom, #4a934a 0%, #357a35 100%);
+            border: 3px solid white;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        .goal {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 120px;
+        }
+        .goalpost {
+            position: absolute;
+            width: 8px;
+            height: 120px;
+            background: white;
+            border-radius: 4px;
+        }
+        .goalpost.left { left: 0; }
+        .goalpost.right { right: 0; }
+        .crossbar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: white;
+            border-radius: 4px;
+        }
+        .goalkeeper {
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 40px;
+            transition: all 0.8s ease;
+        }
+        .ball {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 30px;
+            transition: all 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        .penalty-spot {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+        }
+        .controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .shoot-btn {
+            background: #4CAF50;
+            color: white;
+        }
+        .shoot-btn:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: bold;
+            min-height: 30px;
+        }
+        .goal-result { color: #4CAF50; }
+        .miss-result { color: #f44336; }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="title">
+            <h1>⚽ 足球罰球遊戲</h1>
+            <p>點擊射門按鈕來射門！</p>
+        </div>
+
+        <div class="field">
+            <div class="goal">
+                <div class="goalpost left"></div>
+                <div class="goalpost right"></div>
+                <div class="crossbar"></div>
+            </div>
+            
+            <div class="goalkeeper" id="goalkeeper">🥅</div>
+            <div class="ball" id="ball">⚽</div>
+            <div class="penalty-spot"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn shoot-btn" onclick="shootBall()">射門!</button>
+            <button class="btn" onclick="resetGame()" style="background: #ff9800; color: white;">重置</button>
+        </div>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        let gameInProgress = false;
+
+        function shootBall() {
+            if (gameInProgress) return;
+            
+            gameInProgress = true;
+            const ball = document.getElementById('ball');
+            const goalkeeper = document.getElementById('goalkeeper');
+            const result = document.getElementById('result');
+            
+            // 隨機決定結果
+            const outcomes = ['goal', 'save', 'miss'];
+            const outcome = outcomes[Math.floor(Math.random() * outcomes.length)];
+            
+            let targetX, targetY;
+            
+            if (outcome === 'goal') {
+                // 進球 - 球飛向球門內
+                targetX = 45 + Math.random() * 10; // 45-55%
+                targetY = 25 + Math.random() * 15; // 25-40%
+                goalkeeper.style.transform = 'translateX(-50%) rotate(-30deg)';
+            } else if (outcome === 'save') {
+                // 被撲救
+                targetX = Math.random() > 0.5 ? 35 : 65;
+                targetY = 25 + Math.random() * 15;
+                goalkeeper.style.transform = 'translateX(-50%) translateX(' + (targetX > 50 ? '40px' : '-40px') + ') scale(1.2)';
+            } else {
+                // 射偏
+                targetX = Math.random() > 0.5 ? 25 : 75;
+                targetY = 50 + Math.random() * 20;
+                goalkeeper.style.transform = 'translateX(-50%) scale(1.1)';
+            }
+            
+            // 移動球
+            ball.style.left = targetX + '%';
+            ball.style.bottom = targetY + '%';
+            ball.style.transform = 'translateX(-50%) scale(0.7)';
+            
+            // 顯示結果
+            setTimeout(() => {
+                if (outcome === 'goal') {
+                    result.textContent = '⚽ 進球了！';
+                    result.className = 'result goal-result';
+                } else if (outcome === 'save') {
+                    result.textContent = '🥅 被撲救了！';
+                    result.className = 'result miss-result';
+                } else {
+                    result.textContent = '😵 射偏了！';
+                    result.className = 'result miss-result';
+                }
+                gameInProgress = false;
+            }, 1500);
+        }
+
+        function resetGame() {
+            const ball = document.getElementById('ball');
+            const goalkeeper = document.getElementById('goalkeeper');
+            const result = document.getElementById('result');
+            
+            ball.style.left = '50%';
+            ball.style.bottom = '30px';
+            ball.style.transform = 'translateX(-50%)';
+            
+            goalkeeper.style.transform = 'translateX(-50%)';
+            
+            result.textContent = '';
+            result.className = 'result';
+            
+            gameInProgress = false;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<svg width="60" height="80" viewBox="0 0 60 80" xmlns="http://www.w3.org/2000/svg">
+  <!-- 頭部 -->
+  <circle cx="30" cy="15" r="12" fill="#ffdbaa" stroke="#d4a574" stroke-width="2"/>
+  
+  <!-- 帽子 -->
+  <ellipse cx="30" cy="8" rx="14" ry="6" fill="#8B4513"/>
+  
+  <!-- 身體 -->
+  <rect x="20" y="25" width="20" height="35" fill="#FF6B35" stroke="#D2691E" stroke-width="2" rx="3"/>
+  
+  <!-- 手臂 -->
+  <ellipse cx="15" cy="35" rx="6" ry="15" fill="#ffdbaa" stroke="#d4a574" stroke-width="2"/>
+  <ellipse cx="45" cy="35" rx="6" ry="15" fill="#ffdbaa" stroke="#d4a574" stroke-width="2"/>
+  
+  <!-- 腿部 -->
+  <rect x="22" y="58" width="6" height="20" fill="#8B4513" rx="3"/>
+  <rect x="32" y="58" width="6" height="20" fill="#8B4513" rx="3"/>
+  
+  <!-- 手套 -->
+  <circle cx="15" cy="25" r="5" fill="#FFFF00"/>
+  <circle cx="45" cy="25" r="5" fill="#FFFF00"/>
+  
+  <!-- 眼睛 -->
+  <circle cx="26" cy="14" r="1.5" fill="#333"/>
+  <circle cx="34" cy="14" r="1.5" fill="#333"/>
+  
+  <!-- 微笑 -->
+  <path d="M 26 18 Q 30 21 34 18" stroke="#333" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+</svg>
