@@ -11,6 +11,22 @@
           <h1>⚡ Pinball Football</h1>
         </div>
 
+        <!-- 音樂控制 -->
+        <div class="music-control">
+          <button @click="toggleMusic" class="music-btn">
+            {{ musicPlaying ? '🔊 Music ON' : '🔇 Music OFF' }}
+          </button>
+          <input 
+            type="range" 
+            min="0" 
+            max="1" 
+            step="0.1" 
+            v-model="musicVolume" 
+            @input="updateVolume"
+            class="volume-slider"
+          />
+        </div>
+
         <div class="game-status">
           <div class="timer">
             Time: {{ timeLeft }}s
@@ -22,14 +38,14 @@
               <span class="score">{{ redScore }}</span>
             </div>
             <div class="score-item">
-              <span class="team blue">🔵 Lin Team</span>
+              <span class="team blue">🔵 Amber Team</span>
               <span class="score">{{ blueScore }}</span>
             </div>
           </div>
 
           <!-- 錢包資訊 -->
           <div class="wallet-info">
-            <div class="wallet-balance">💰 Balance: ${{ wallet }}</div>
+            <div class="wallet-balance">💰 Balance: ${{ Math.floor(wallet) }}</div>
             <div class="bet-amount-selector">
               <label>Bet Amount: $</label>
               <select v-model="betAmount">
@@ -142,9 +158,9 @@
             :key="player.id"
             :class="['player', player.team, { 'chasing': player.isChasing, 'retreating': isPlayerRetreating(player) }]"
             :data-role="player.role"
-            :style="{ left: player.x + 'px', top: player.y + 'px' }"
+            :style="{ left: player.x + 'px', top: player.y + 'px', transform: 'translate(-50%, -50%)' }"
           >
-            <div class="team-name">{{ player.team === 'red' ? 'EVA' : 'LIN' }}</div>
+            <div class="team-name">{{ player.team === 'red' ? 'EVA' : 'AMB' }}</div>
           </div>
 
           <!-- 足球 -->
@@ -197,6 +213,10 @@ export default {
       goalAnimation: null,
       lastGoalTime: 0,
       gameEndAnimation: null,
+      // 音樂控制
+      musicPlaying: false,
+      musicVolume: 0.3,
+      backgroundMusic: null,
       // 下注系統
       wallet: 1000, // 初始金額
       currentBets: [],
@@ -207,7 +227,7 @@ export default {
           options: [
             { key: 'evans_win', name: 'Evans Win (1)', odds: 2.1 },
             { key: 'draw', name: 'Draw (X)', odds: 3.2 },
-            { key: 'lin_win', name: 'Lin Win (2)', odds: 2.1 }
+            { key: 'amber_win', name: 'Amber Win (2)', odds: 2.1 }
           ]
         },
         'over_under': {
@@ -221,7 +241,7 @@ export default {
           name: 'Next Goal',
           options: [
             { key: 'evans_next', name: 'Evans Next', odds: 1.9 },
-            { key: 'lin_next', name: 'Lin Next', odds: 1.9 },
+            { key: 'amber_next', name: 'Amber Next', odds: 1.9 },
             { key: 'no_goal', name: 'No More Goals', odds: 4.0 }
           ]
         },
@@ -244,28 +264,135 @@ export default {
         lastY: 250
       },
       players: [
-        // Evans team players (3 players + 1 goalkeeper) - 超小尺寸
+        // Evans team players (3 players + 1 goalkeeper) - 左側隊伍
         { id: 1, team: 'red', x: 80, y: 250, vx: 0, vy: 0, radius: 15, originalX: 80, originalY: 250, role: 'goalkeeper', lastHitTime: 0 },
-        { id: 2, team: 'red', x: 200, y: 100, vx: 0, vy: 0, radius: 12, originalX: 200, originalY: 100, role: 'defender', lastHitTime: 0 },
-        { id: 3, team: 'red', x: 320, y: 250, vx: 0, vy: 0, radius: 12, originalX: 320, originalY: 250, role: 'midfielder', lastHitTime: 0 },
-        { id: 4, team: 'red', x: 200, y: 400, vx: 0, vy: 0, radius: 12, originalX: 200, originalY: 400, role: 'forward', lastHitTime: 0 },
+        { id: 2, team: 'red', x: 200, y: 150, vx: 0, vy: 0, radius: 12, originalX: 200, originalY: 150, role: 'defender', lastHitTime: 0 },
+        { id: 3, team: 'red', x: 200, y: 350, vx: 0, vy: 0, radius: 12, originalX: 200, originalY: 350, role: 'defender', lastHitTime: 0 },
+        { id: 4, team: 'red', x: 320, y: 250, vx: 0, vy: 0, radius: 12, originalX: 320, originalY: 250, role: 'forward', lastHitTime: 0 },
         
-        // Lin team players (3 players + 1 goalkeeper) - 超小尺寸
+        // Amber team players (3 players + 1 goalkeeper) - 右側隊伍
         { id: 5, team: 'blue', x: 720, y: 250, vx: 0, vy: 0, radius: 15, originalX: 720, originalY: 250, role: 'goalkeeper', lastHitTime: 0 },
-        { id: 6, team: 'blue', x: 600, y: 100, vx: 0, vy: 0, radius: 12, originalX: 600, originalY: 100, role: 'defender', lastHitTime: 0 },
-        { id: 7, team: 'blue', x: 480, y: 250, vx: 0, vy: 0, radius: 12, originalX: 480, originalY: 250, role: 'midfielder', lastHitTime: 0 },
-        { id: 8, team: 'blue', x: 600, y: 400, vx: 0, vy: 0, radius: 12, originalX: 600, originalY: 400, role: 'forward', lastHitTime: 0 }
+        { id: 6, team: 'blue', x: 600, y: 150, vx: 0, vy: 0, radius: 12, originalX: 600, originalY: 150, role: 'defender', lastHitTime: 0 },
+        { id: 7, team: 'blue', x: 600, y: 350, vx: 0, vy: 0, radius: 12, originalX: 600, originalY: 350, role: 'defender', lastHitTime: 0 },
+        { id: 8, team: 'blue', x: 480, y: 250, vx: 0, vy: 0, radius: 12, originalX: 480, originalY: 250, role: 'forward', lastHitTime: 0 }
       ],
       animationId: null,
       gameTimer: null,
       fieldWidth: 800,
       fieldHeight: 500,
-      ballRadius: 12
+      ballRadius: 12,
+      resizeTimeout: null
     }
   },
   methods: {
     goHome() {
       this.$router.push('/')
+    },
+    
+    // 檢測是否為手機版
+    isMobile() {
+      return window.innerWidth <= 768
+    },
+    
+    // 更新球場實際尺寸
+    updateFieldDimensions() {
+      this.$nextTick(() => {
+        const fieldElement = document.querySelector('.pinball-field')
+        if (fieldElement) {
+          const newWidth = fieldElement.offsetWidth
+          const newHeight = fieldElement.offsetHeight
+          console.log(`更新球場尺寸: ${newWidth}x${newHeight} (之前: ${this.fieldWidth}x${this.fieldHeight})`)
+          this.fieldWidth = newWidth
+          this.fieldHeight = newHeight
+        } else {
+          console.log('找不到球場元素')
+        }
+      })
+    },
+    
+    // 根據設備調整球員位置
+    adjustPlayersForDevice() {
+      if (this.isMobile()) {
+        // 手機版垂直球場：重新排列球員
+        this.players = [
+          // Evans team players (3 players + 1 goalkeeper) - 下方隊伍
+          { id: 1, team: 'red', x: this.fieldWidth * 0.5, y: this.fieldHeight * 0.9, vx: 0, vy: 0, radius: 15, originalX: this.fieldWidth * 0.5, originalY: this.fieldHeight * 0.9, role: 'goalkeeper', lastHitTime: 0 },
+          { id: 2, team: 'red', x: this.fieldWidth * 0.3, y: this.fieldHeight * 0.75, vx: 0, vy: 0, radius: 12, originalX: this.fieldWidth * 0.3, originalY: this.fieldHeight * 0.75, role: 'defender', lastHitTime: 0 },
+          { id: 3, team: 'red', x: this.fieldWidth * 0.7, y: this.fieldHeight * 0.75, vx: 0, vy: 0, radius: 12, originalX: this.fieldWidth * 0.7, originalY: this.fieldHeight * 0.75, role: 'defender', lastHitTime: 0 },
+          { id: 4, team: 'red', x: this.fieldWidth * 0.5, y: this.fieldHeight * 0.6, vx: 0, vy: 0, radius: 12, originalX: this.fieldWidth * 0.5, originalY: this.fieldHeight * 0.6, role: 'forward', lastHitTime: 0 },
+          
+          // Amber team players (3 players + 1 goalkeeper) - 上方隊伍
+          { id: 5, team: 'blue', x: this.fieldWidth * 0.5, y: this.fieldHeight * 0.1, vx: 0, vy: 0, radius: 15, originalX: this.fieldWidth * 0.5, originalY: this.fieldHeight * 0.1, role: 'goalkeeper', lastHitTime: 0 },
+          { id: 6, team: 'blue', x: this.fieldWidth * 0.3, y: this.fieldHeight * 0.25, vx: 0, vy: 0, radius: 12, originalX: this.fieldWidth * 0.3, originalY: this.fieldHeight * 0.25, role: 'defender', lastHitTime: 0 },
+          { id: 7, team: 'blue', x: this.fieldWidth * 0.7, y: this.fieldHeight * 0.25, vx: 0, vy: 0, radius: 12, originalX: this.fieldWidth * 0.7, originalY: this.fieldHeight * 0.25, role: 'defender', lastHitTime: 0 },
+          { id: 8, team: 'blue', x: this.fieldWidth * 0.5, y: this.fieldHeight * 0.4, vx: 0, vy: 0, radius: 12, originalX: this.fieldWidth * 0.5, originalY: this.fieldHeight * 0.4, role: 'forward', lastHitTime: 0 }
+        ]
+      } else {
+        // 桌機版橫向球場：使用原來的位置
+        this.players = [
+          // Evans team players (3 players + 1 goalkeeper) - 左側隊伍
+          { id: 1, team: 'red', x: 80, y: 250, vx: 0, vy: 0, radius: 15, originalX: 80, originalY: 250, role: 'goalkeeper', lastHitTime: 0 },
+          { id: 2, team: 'red', x: 200, y: 150, vx: 0, vy: 0, radius: 12, originalX: 200, originalY: 150, role: 'defender', lastHitTime: 0 },
+          { id: 3, team: 'red', x: 200, y: 350, vx: 0, vy: 0, radius: 12, originalX: 200, originalY: 350, role: 'defender', lastHitTime: 0 },
+          { id: 4, team: 'red', x: 320, y: 250, vx: 0, vy: 0, radius: 12, originalX: 320, originalY: 250, role: 'forward', lastHitTime: 0 },
+          
+          // Amber team players (3 players + 1 goalkeeper) - 右側隊伍
+          { id: 5, team: 'blue', x: 720, y: 250, vx: 0, vy: 0, radius: 15, originalX: 720, originalY: 250, role: 'goalkeeper', lastHitTime: 0 },
+          { id: 6, team: 'blue', x: 600, y: 150, vx: 0, vy: 0, radius: 12, originalX: 600, originalY: 150, role: 'defender', lastHitTime: 0 },
+          { id: 7, team: 'blue', x: 600, y: 350, vx: 0, vy: 0, radius: 12, originalX: 600, originalY: 350, role: 'defender', lastHitTime: 0 },
+          { id: 8, team: 'blue', x: 480, y: 250, vx: 0, vy: 0, radius: 12, originalX: 480, originalY: 250, role: 'forward', lastHitTime: 0 }
+        ]
+      }
+    },
+    
+    // 處理視窗大小變化
+    handleResize() {
+      // 延遲執行避免頻繁調用
+      clearTimeout(this.resizeTimeout)
+      this.resizeTimeout = setTimeout(() => {
+        this.updateFieldDimensions()
+        // 無論遊戲是否進行中都要調整球員位置，因為設備切換時需要重新排列
+        setTimeout(() => {
+          this.adjustPlayersForDevice()
+        }, 50)
+      }, 100)
+    },
+    
+    // 音樂控制方法
+    initMusic() {
+      // 使用你的MP3檔案
+      this.backgroundMusic = new Audio('/football/football.mp3')
+      this.backgroundMusic.loop = true
+      this.backgroundMusic.volume = this.musicVolume
+    },
+    
+    
+    toggleMusic() {
+      this.musicPlaying = !this.musicPlaying
+      
+      if (this.musicPlaying) {
+        if (!this.backgroundMusic) {
+          this.initMusic()
+        }
+        this.backgroundMusic.play().catch(error => {
+          console.log('音樂播放失敗:', error)
+        })
+      } else {
+        this.stopMusic()
+      }
+    },
+    
+    stopMusic() {
+      if (this.backgroundMusic && typeof this.backgroundMusic.pause === 'function') {
+        this.backgroundMusic.pause()
+        this.backgroundMusic.currentTime = 0
+      }
+    },
+    
+    updateVolume() {
+      if (this.backgroundMusic && typeof this.backgroundMusic.volume !== 'undefined') {
+        this.backgroundMusic.volume = this.musicVolume
+      }
     },
     
     isPlayerRetreating(player) {
@@ -280,12 +407,22 @@ export default {
       this.blueScore = 0
       this.gameResult = null
       
-      // 重置球的位置和速度 - 超快速度
+      // 更新球場尺寸後再調整球員位置
+      this.updateFieldDimensions()
+      setTimeout(() => {
+        this.adjustPlayersForDevice()
+      }, 50)
+      
+      // 重置球的位置和速度 - 根據設備調整初始方向
+      const initialDirection = this.isMobile() ? 
+        { vx: (Math.random() - 0.5) * 15, vy: (Math.random() > 0.5 ? 15 : -15) } : 
+        { vx: (Math.random() > 0.5 ? 15 : -15), vy: (Math.random() - 0.5) * 15 }
+      
       this.ball = {
         x: this.fieldWidth / 2,
         y: this.fieldHeight / 2,
-        vx: (Math.random() - 0.5) * 30,
-        vy: (Math.random() - 0.5) * 30,
+        vx: initialDirection.vx,
+        vy: initialDirection.vy,
         rotation: 0,
         stuckTimer: 0,
         lastX: this.fieldWidth / 2,
@@ -445,16 +582,32 @@ export default {
         player.isChasing = isChaser
         
         if (player.role === 'goalkeeper') {
-          // 守門員守在球門前
-          const goalCenterY = this.fieldHeight / 2
-          targetX = player.originalX
-          
-          if (player.team === 'red' && this.ball.x < this.fieldWidth / 3) {
-            targetY = Math.max(200, Math.min(300, this.ball.y - player.radius))
-          } else if (player.team === 'blue' && this.ball.x > this.fieldWidth * 2/3) {
-            targetY = Math.max(200, Math.min(300, this.ball.y - player.radius))
+          // 守門員守在球門前 - 根據設備調整邏輯
+          if (this.isMobile()) {
+            // 手機版垂直球場：守門員在上下兩端
+            targetY = player.originalY
+            
+            if (player.team === 'red' && this.ball.y > this.fieldHeight * 2/3) {
+              // 紅隊守門員在下方，當球靠近時左右移動
+              targetX = Math.max(this.fieldWidth * 0.2, Math.min(this.fieldWidth * 0.8, this.ball.x - player.radius))
+            } else if (player.team === 'blue' && this.ball.y < this.fieldHeight / 3) {
+              // 藍隊守門員在上方，當球靠近時左右移動
+              targetX = Math.max(this.fieldWidth * 0.2, Math.min(this.fieldWidth * 0.8, this.ball.x - player.radius))
+            } else {
+              targetX = player.originalX
+            }
           } else {
-            targetY = goalCenterY - player.radius
+            // 桌機版橫向球場：原來的邏輯
+            const goalCenterY = this.fieldHeight / 2
+            targetX = player.originalX
+            
+            if (player.team === 'red' && this.ball.x < this.fieldWidth / 3) {
+              targetY = Math.max(200, Math.min(300, this.ball.y - player.radius))
+            } else if (player.team === 'blue' && this.ball.x > this.fieldWidth * 2/3) {
+              targetY = Math.max(200, Math.min(300, this.ball.y - player.radius))
+            } else {
+              targetY = goalCenterY - player.radius
+            }
           }
           
         } else if (isChaser && distanceToBall < 100) {
@@ -493,21 +646,47 @@ export default {
           }
         }
         
-        // 限制移動範圍
+        // 限制移動範圍 - 根據設備調整
         if (player.role === 'goalkeeper') {
-          if (player.team === 'red') {
-            targetX = Math.max(30, Math.min(120, targetX))
+          if (this.isMobile()) {
+            // 手機版垂直球場：守門員可以左右移動在球門區域
+            targetX = Math.max(this.fieldWidth * 0.15, Math.min(this.fieldWidth * 0.85, targetX))
+            if (player.team === 'red') {
+              targetY = Math.max(this.fieldHeight * 0.85, Math.min(this.fieldHeight - 25, targetY))
+            } else {
+              targetY = Math.max(25, Math.min(this.fieldHeight * 0.15, targetY))
+            }
           } else {
-            targetX = Math.max(680, Math.min(770, targetX))
+            // 桌機版橫向球場：原來的邏輯
+            if (player.team === 'red') {
+              targetX = Math.max(30, Math.min(120, targetX))
+            } else {
+              targetX = Math.max(680, Math.min(770, targetX))
+            }
           }
         } else {
-          if (player.team === 'red') {
-            targetX = Math.max(25, Math.min(this.fieldWidth / 2 - 10, targetX))
+          if (this.isMobile()) {
+            // 手機版垂直球場：球員可以在整個半場活動
+            if (player.team === 'red') {
+              targetY = Math.max(this.fieldHeight / 2 + 10, Math.min(this.fieldHeight - 50, targetY))
+            } else {
+              targetY = Math.max(25, Math.min(this.fieldHeight / 2 - 10, targetY))
+            }
+            targetX = Math.max(25, Math.min(this.fieldWidth - 50, targetX))
           } else {
-            targetX = Math.max(this.fieldWidth / 2 + 10, Math.min(this.fieldWidth - 50, targetX))
+            // 桌機版橫向球場：原來的邏輯
+            if (player.team === 'red') {
+              targetX = Math.max(25, Math.min(this.fieldWidth / 2 - 10, targetX))
+            } else {
+              targetX = Math.max(this.fieldWidth / 2 + 10, Math.min(this.fieldWidth - 50, targetX))
+            }
           }
         }
-        targetY = Math.max(25, Math.min(this.fieldHeight - 50, targetY))
+        
+        // 只在桌機版才使用通用的Y軸限制
+        if (!this.isMobile()) {
+          targetY = Math.max(25, Math.min(this.fieldHeight - 50, targetY))
+        }
         
         // 移動速度，剛碰過球的球員後退更快
         const currentTime = Date.now()
@@ -533,21 +712,44 @@ export default {
         player.x += player.vx
         player.y += player.vy
         
-        // 限制最終位置
+        // 限制最終位置 - 根據設備調整
         if (player.role === 'goalkeeper') {
-          if (player.team === 'red') {
-            player.x = Math.max(30, Math.min(120, player.x))
+          if (this.isMobile()) {
+            // 手機版垂直球場：守門員限制在球門區域
+            player.x = Math.max(this.fieldWidth * 0.15, Math.min(this.fieldWidth * 0.85, player.x))
+            if (player.team === 'red') {
+              player.y = Math.max(this.fieldHeight * 0.85, Math.min(this.fieldHeight - 25, player.y))
+            } else {
+              player.y = Math.max(25, Math.min(this.fieldHeight * 0.15, player.y))
+            }
           } else {
-            player.x = Math.max(680, Math.min(770, player.x))
+            // 桌機版橫向球場：原來的邏輯
+            if (player.team === 'red') {
+              player.x = Math.max(30, Math.min(120, player.x))
+            } else {
+              player.x = Math.max(680, Math.min(770, player.x))
+            }
+            player.y = Math.max(25, Math.min(this.fieldHeight - 50, player.y))
           }
         } else {
-          if (player.team === 'red') {
-            player.x = Math.max(25, Math.min(this.fieldWidth / 2 - 10, player.x))
+          if (this.isMobile()) {
+            // 手機版垂直球場：球員在各自半場活動
+            if (player.team === 'red') {
+              player.y = Math.max(this.fieldHeight / 2 + 10, Math.min(this.fieldHeight - 50, player.y))
+            } else {
+              player.y = Math.max(25, Math.min(this.fieldHeight / 2 - 10, player.y))
+            }
+            player.x = Math.max(25, Math.min(this.fieldWidth - 50, player.x))
           } else {
-            player.x = Math.max(this.fieldWidth / 2 + 10, Math.min(this.fieldWidth - 50, player.x))
+            // 桌機版橫向球場：原來的邏輯
+            if (player.team === 'red') {
+              player.x = Math.max(25, Math.min(this.fieldWidth / 2 - 10, player.x))
+            } else {
+              player.x = Math.max(this.fieldWidth / 2 + 10, Math.min(this.fieldWidth - 50, player.x))
+            }
+            player.y = Math.max(25, Math.min(this.fieldHeight - 50, player.y))
           }
         }
-        player.y = Math.max(25, Math.min(this.fieldHeight - 50, player.y))
       })
     },
 
@@ -569,19 +771,37 @@ export default {
           // 記錄碰撞時間
           player.lastHitTime = currentTime
           
-          // 計算朝向對方球門的角度
-          let targetGoalX
-          if (player.team === 'red') {
-            // 紅隊踢向右邊藍隊球門
-            targetGoalX = this.fieldWidth - 10
+          // 計算朝向對方球門的角度 - 根據設備調整
+          let targetGoalX, targetGoalY
+          
+          if (this.isMobile()) {
+            // 手機版垂直球場：球門在上下
+            const goalCenterX = this.fieldWidth / 2
+            targetGoalX = goalCenterX
+            
+            if (player.team === 'red') {
+              // 紅隊踢向上方藍隊球門
+              targetGoalY = 10
+            } else {
+              // 藍隊踢向下方紅隊球門
+              targetGoalY = this.fieldHeight - 10
+            }
           } else {
-            // 藍隊踢向左邊紅隊球門
-            targetGoalX = 10
+            // 桌機版橫向球場：球門在左右
+            const goalCenterY = this.fieldHeight / 2
+            targetGoalY = goalCenterY
+            
+            if (player.team === 'red') {
+              // 紅隊踢向右邊藍隊球門
+              targetGoalX = this.fieldWidth - 10
+            } else {
+              // 藍隊踢向左邊紅隊球門
+              targetGoalX = 10
+            }
           }
           
-          const goalCenterY = this.fieldHeight / 2
           const toGoalX = targetGoalX - this.ball.x
-          const toGoalY = goalCenterY - this.ball.y
+          const toGoalY = targetGoalY - this.ball.y
           const toGoalAngle = Math.atan2(toGoalY, toGoalX)
           
           // 加入一些隨機性避免太死板
@@ -610,24 +830,50 @@ export default {
         return
       }
       
-      // 檢查紅隊球門 (左側)
-      if (this.ball.x <= 20 && this.ball.y >= 180 && this.ball.y <= 320) {
-        this.blueScore++
-        this.lastGoalTime = currentTime
-        this.settleNextGoalBets('lin') // 結算next goal下注
-        this.showGoalAnimation('Lin Team', 'GOAL!', this.redScore, this.blueScore)
-        setTimeout(() => this.resetBallAfterGoal(), 1500)
-        return
-      }
-      
-      // 檢查藍隊球門 (右側)
-      if (this.ball.x >= this.fieldWidth - 20 && this.ball.y >= 180 && this.ball.y <= 320) {
-        this.redScore++
-        this.lastGoalTime = currentTime
-        this.settleNextGoalBets('evans') // 結算next goal下注
-        this.showGoalAnimation('Evans Team', 'GOAL!', this.redScore, this.blueScore)
-        setTimeout(() => this.resetBallAfterGoal(), 1500)
-        return
+      if (this.isMobile()) {
+        // 手機版垂直球場：上下goal
+        
+        // 檢查Amber隊球門 (上方)
+        if (this.ball.y <= 15 && this.ball.x >= this.fieldWidth * 0.2 && this.ball.x <= this.fieldWidth * 0.8) {
+          this.redScore++
+          this.lastGoalTime = currentTime
+          this.settleNextGoalBets('evans') // 結算next goal下注
+          this.showGoalAnimation('Evans Team', 'GOAL!', this.redScore, this.blueScore)
+          setTimeout(() => this.resetBallAfterGoal(), 1500)
+          return
+        }
+        
+        // 檢查Evans隊球門 (下方)
+        if (this.ball.y >= this.fieldHeight - 15 && this.ball.x >= this.fieldWidth * 0.2 && this.ball.x <= this.fieldWidth * 0.8) {
+          this.blueScore++
+          this.lastGoalTime = currentTime
+          this.settleNextGoalBets('lin') // 結算next goal下注
+          this.showGoalAnimation('Amber Team', 'GOAL!', this.redScore, this.blueScore)
+          setTimeout(() => this.resetBallAfterGoal(), 1500)
+          return
+        }
+      } else {
+        // 桌機版橫向球場：左右goal
+        
+        // 檢查Evans隊球門 (左側)
+        if (this.ball.x <= 20 && this.ball.y >= 180 && this.ball.y <= 320) {
+          this.blueScore++
+          this.lastGoalTime = currentTime
+          this.settleNextGoalBets('lin') // 結算next goal下注
+          this.showGoalAnimation('Amber Team', 'GOAL!', this.redScore, this.blueScore)
+          setTimeout(() => this.resetBallAfterGoal(), 1500)
+          return
+        }
+        
+        // 檢查Amber隊球門 (右側)
+        if (this.ball.x >= this.fieldWidth - 20 && this.ball.y >= 180 && this.ball.y <= 320) {
+          this.redScore++
+          this.lastGoalTime = currentTime
+          this.settleNextGoalBets('evans') // 結算next goal下注
+          this.showGoalAnimation('Evans Team', 'GOAL!', this.redScore, this.blueScore)
+          setTimeout(() => this.resetBallAfterGoal(), 1500)
+          return
+        }
       }
     },
     
@@ -645,12 +891,16 @@ export default {
     },
 
     resetBallAfterGoal() {
-      // 球回到中央，隨機方向，超快速度
+      // 球回到中央，根據設備調整方向，超快速度
+      const resetDirection = this.isMobile() ? 
+        { vx: (Math.random() - 0.5) * 25, vy: (Math.random() > 0.5 ? 25 : -25) } : 
+        { vx: (Math.random() > 0.5 ? 25 : -25), vy: (Math.random() - 0.5) * 25 }
+      
       this.ball = {
         x: this.fieldWidth / 2,
         y: this.fieldHeight / 2,
-        vx: (Math.random() - 0.5) * 25,
-        vy: (Math.random() - 0.5) * 25,
+        vx: resetDirection.vx,
+        vy: resetDirection.vy,
         rotation: 0,
         stuckTimer: 0,
         lastX: this.fieldWidth / 2,
@@ -669,15 +919,15 @@ export default {
       if (this.redScore > this.blueScore) {
         winner = 'red'
         message = 'Evans Team Wins!'
-        description = `Final Score: Evans ${this.redScore} - ${this.blueScore} Lin`
+        description = `Final Score: Evans ${this.redScore} - ${this.blueScore} Amber`
       } else if (this.blueScore > this.redScore) {
         winner = 'blue'
-        message = 'Lin Team Wins!'
-        description = `Final Score: Lin ${this.blueScore} - ${this.redScore} Evans`
+        message = 'Amber Team Wins!'
+        description = `Final Score: Amber ${this.blueScore} - ${this.redScore} Evans`
       } else {
         winner = 'tie'
         message = 'It\'s a Tie!'
-        description = `Final Score: Evans ${this.redScore} - ${this.blueScore} Lin`
+        description = `Final Score: Evans ${this.redScore} - ${this.blueScore} Amber`
       }
 
       // 顯示比賽結束動畫
@@ -799,7 +1049,7 @@ export default {
           }
           break
           
-        case 'lin_win':
+        case 'amber_win':
           if (this.blueScore > this.redScore) {
             winProbability = 0.8 + (timeProgress * 0.15)
           } else if (this.blueScore < this.redScore) {
@@ -906,7 +1156,7 @@ export default {
           case 'draw':
             won = this.redScore === this.blueScore
             break
-          case 'lin_win':
+          case 'amber_win':
             won = this.blueScore > this.redScore
             break
             
@@ -949,7 +1199,7 @@ export default {
         
         if (bet.option === 'evans_next' && scoringTeam === 'evans') {
           won = true
-        } else if (bet.option === 'lin_next' && scoringTeam === 'lin') {
+        } else if (bet.option === 'amber_next' && scoringTeam === 'lin') {
           won = true
         }
         
@@ -996,9 +1246,29 @@ export default {
     }
   },
 
+  mounted() {
+    // 初始化球場尺寸，然後設置球員位置
+    this.$nextTick(() => {
+      this.updateFieldDimensions()
+      setTimeout(() => {
+        this.adjustPlayersForDevice()
+      }, 100)
+    })
+    
+    // 進入頁面時自動開啟音樂
+    this.toggleMusic()
+    
+    // 監聽視窗大小變化
+    window.addEventListener('resize', this.handleResize)
+  },
+  
   beforeUnmount() {
     clearInterval(this.gameTimer)
     cancelAnimationFrame(this.animationId)
+    clearTimeout(this.resizeTimeout)
+    window.removeEventListener('resize', this.handleResize)
+    // 離開頁面時停止音樂
+    this.stopMusic()
   }
 }
 </script>
@@ -1056,6 +1326,60 @@ export default {
   margin-bottom: 20px;
   font-size: 1.8em;
   text-align: center;
+}
+
+/* 音樂控制樣式 */
+.music-control {
+  background: rgba(255,255,255,0.1);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.music-btn {
+  background: linear-gradient(45deg, #4ecdc4, #44a08d);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.music-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+}
+
+.volume-slider {
+  width: 100%;
+  height: 5px;
+  border-radius: 5px;
+  background: rgba(255,255,255,0.3);
+  outline: none;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #4ecdc4;
+  cursor: pointer;
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #4ecdc4;
+  cursor: pointer;
+  border: none;
 }
 
 .game-status {
@@ -1725,6 +2049,170 @@ export default {
   
   .betting-markets {
     max-height: 300px;
+  }
+}
+
+/* 手機版響應式設計 */
+@media (max-width: 768px) {
+  .pinball-game {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .game-layout {
+    flex-direction: column;
+    height: 100vh;
+    flex: 1;
+  }
+  
+  .info-panel {
+    width: 100%;
+    max-height: 28vh;
+    overflow-y: auto;
+    order: 2;
+    flex-shrink: 0;
+  }
+  
+  .game-area {
+    order: 1;
+    padding: 2px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+  }
+  
+  /* 垂直球場 - 更大尺寸顯示完整畫面 */
+  .pinball-field {
+    width: calc(100vw - 8px);
+    max-width: 420px;
+    height: calc(72vh);
+    min-height: 550px;
+    max-height: 700px;
+    margin: 0 auto;
+  }
+  
+  .title h1 {
+    font-size: 1em;
+    margin-bottom: 8px;
+  }
+  
+  .timer, .scores, .wallet-info {
+    font-size: 0.8em;
+  }
+  
+  .game-status {
+    gap: 10px;
+  }
+  
+  .score-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9em;
+  }
+  
+  .bet-option {
+    padding: 6px 8px;
+    font-size: 0.7em;
+    margin: 2px;
+  }
+  
+  .music-control {
+    padding: 8px;
+    margin-bottom: 10px;
+  }
+  
+  .music-btn {
+    padding: 6px 10px;
+    font-size: 0.8em;
+  }
+  
+  .betting-markets {
+    max-height: 150px;
+    font-size: 0.8em;
+  }
+  
+  .market {
+    margin-bottom: 10px;
+  }
+  
+  .market h4 {
+    font-size: 0.9em;
+    margin-bottom: 5px;
+  }
+  
+  .market-options {
+    gap: 5px;
+  }
+  
+  .current-bets, .settled-bets {
+    font-size: 0.8em;
+  }
+  
+  .bet-item {
+    padding: 8px;
+    margin-bottom: 5px;
+  }
+  
+  .back-button {
+    top: 5px;
+    left: 5px;
+    padding: 6px 12px;
+    font-size: 0.8em;
+  }
+  
+  /* 確保文字不會溢出 */
+  .bet-amount-selector select {
+    font-size: 0.8em;
+    padding: 4px;
+  }
+  
+  .volume-slider {
+    height: 4px;
+  }
+  
+  .cashout-btn {
+    padding: 4px 8px;
+    font-size: 0.6em;
+  }
+  
+  /* 手機版垂直球場的中場線改為橫向 */
+  .center-line {
+    left: 0;
+    top: 50%;
+    width: 100%;
+    height: 3px;
+    transform: translateY(-50%);
+  }
+  
+  /* 手機版垂直球場的goal位置改為上下 */
+  .goal {
+    width: 60%;
+    height: 15px;
+    left: 20%;
+    top: auto;
+  }
+  
+  .red-goal {
+    bottom: 0;
+    left: 20%;
+  }
+  
+  .blue-goal {
+    top: 0;
+    left: 20%;
+    right: auto;
+  }
+  
+  .goal-line {
+    border-radius: 5px 5px 0 0;
+  }
+  
+  .red-goal .goal-line {
+    border-radius: 0 0 5px 5px;
   }
 }
 </style>

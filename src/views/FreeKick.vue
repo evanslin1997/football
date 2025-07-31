@@ -11,6 +11,22 @@
           <h1>⚽ Free Kick Game</h1>
         </div>
 
+        <!-- 音樂控制 -->
+        <div class="music-control">
+          <button @click="toggleMusic" class="music-btn">
+            {{ musicPlaying ? '🔊 Music ON' : '🔇 Music OFF' }}
+          </button>
+          <input 
+            type="range" 
+            min="0" 
+            max="1" 
+            step="0.1" 
+            v-model="musicVolume" 
+            @input="updateVolume"
+            class="volume-slider"
+          />
+        </div>
+
         <div class="balance">
           Balance: {{ balance }} coins
         </div>
@@ -136,6 +152,10 @@ export default {
   name: 'FreeKick',
   data() {
     return {
+      // 音樂控制
+      musicPlaying: false,
+      musicVolume: 0.3,
+      backgroundMusic: null,
       balance: 1000,
       betAmount: 50,
       currentBet: null,
@@ -158,10 +178,52 @@ export default {
   },
   mounted() {
     this.updateOdds()
+    // 進入頁面時自動開啟音樂
+    this.toggleMusic()
+  },
+  
+  beforeUnmount() {
+    // 離開頁面時停止音樂
+    this.stopMusic()
   },
   methods: {
     goHome() {
       this.$router.push('/')
+    },
+    
+    // 音樂控制方法
+    initMusic() {
+      this.backgroundMusic = new Audio('/football/football.mp3')
+      this.backgroundMusic.loop = true
+      this.backgroundMusic.volume = this.musicVolume
+    },
+    
+    toggleMusic() {
+      this.musicPlaying = !this.musicPlaying
+      
+      if (this.musicPlaying) {
+        if (!this.backgroundMusic) {
+          this.initMusic()
+        }
+        this.backgroundMusic.play().catch(error => {
+          console.log('音樂播放失敗:', error)
+        })
+      } else {
+        this.stopMusic()
+      }
+    },
+    
+    stopMusic() {
+      if (this.backgroundMusic && typeof this.backgroundMusic.pause === 'function') {
+        this.backgroundMusic.pause()
+        this.backgroundMusic.currentTime = 0
+      }
+    },
+    
+    updateVolume() {
+      if (this.backgroundMusic && typeof this.backgroundMusic.volume !== 'undefined') {
+        this.backgroundMusic.volume = this.musicVolume
+      }
     },
     updateOdds() {
       const difficultySettings = {
@@ -442,6 +504,60 @@ export default {
   color: #2c5530;
   margin-bottom: 10px;
   font-size: 1.8em;
+}
+
+/* 音樂控制樣式 */
+.music-control {
+  background: rgba(255,255,255,0.1);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.music-btn {
+  background: linear-gradient(45deg, #4ecdc4, #44a08d);
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.music-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+}
+
+.volume-slider {
+  width: 100%;
+  height: 5px;
+  border-radius: 5px;
+  background: rgba(255,255,255,0.3);
+  outline: none;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #4ecdc4;
+  cursor: pointer;
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: #4ecdc4;
+  cursor: pointer;
+  border: none;
 }
 
 .config-section {
@@ -764,5 +880,119 @@ export default {
 
 .preset-btn:hover {
   background: #689F38;
+}
+
+/* 手機版響應式設計 */
+@media (max-width: 768px) {
+  .freekick-game {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .game-layout {
+    flex-direction: column;
+    height: 100vh;
+    flex: 1;
+  }
+  
+  .config-panel {
+    width: 100%;
+    max-height: 35vh;
+    overflow-y: auto;
+    order: 2;
+    flex-shrink: 0;
+  }
+  
+  .game-area {
+    order: 1;
+    padding: 5px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+  }
+  
+  .football-field {
+    width: calc(100vw - 20px);
+    max-width: 350px;
+    height: calc(65vh - 10px);
+    max-height: 300px;
+    margin: 0 auto;
+  }
+  
+  .title h1 {
+    font-size: 1em;
+    margin-bottom: 8px;
+  }
+  
+  .balance {
+    font-size: 0.8em;
+    margin-bottom: 10px;
+  }
+  
+  .config-section {
+    margin: 10px 0;
+    padding: 8px;
+  }
+  
+  .config-section h3 {
+    font-size: 0.9em;
+    margin-bottom: 8px;
+  }
+  
+  .bet-controls select,
+  .difficulty-selector select,
+  .image-input {
+    font-size: 0.9em;
+    padding: 8px;
+  }
+  
+  .preset-goalkeepers {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .preset-btn {
+    padding: 8px 12px;
+    font-size: 0.8em;
+  }
+  
+  .bet-options {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .bet-button {
+    padding: 10px 15px;
+    font-size: 0.9em;
+  }
+  
+  .music-control {
+    padding: 10px;
+    margin-bottom: 15px;
+  }
+  
+  .music-btn {
+    padding: 8px 12px;
+    font-size: 0.9em;
+  }
+  
+  .back-button {
+    top: 10px;
+    left: 10px;
+    padding: 8px 15px;
+    font-size: 0.9em;
+  }
+  
+  .result-panel {
+    padding: 15px;
+    font-size: 0.9em;
+  }
+  
+  .winnings {
+    font-size: 1.1em;
+  }
 }
 </style>

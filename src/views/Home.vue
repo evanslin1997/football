@@ -45,6 +45,11 @@
         <p>Easy to Play</p>
       </div>
     </div>
+
+    <!-- 版權資訊 -->
+    <div class="copyright">
+      <p>© 2025 Evans Lin. All rights reserved.</p>
+    </div>
   </div>
 </template>
 
@@ -191,6 +196,32 @@ export default {
   opacity: 0.9;
 }
 
+/* 版權樣式 */
+.copyright {
+  margin-top: 60px;
+  text-align: center;
+  color: white;
+  padding: 30px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  animation: fadeInUp 1s ease-out 1s both;
+}
+
+.copyright p {
+  margin: 5px 0;
+  opacity: 0.8;
+  font-size: 0.95em;
+}
+
+.copyright p:first-child {
+  font-weight: bold;
+  opacity: 1;
+}
+
+.copyright p:last-child {
+  font-style: italic;
+  color: #FFE082;
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -215,16 +246,86 @@ export default {
 }
 
 @media (max-width: 768px) {
-  .games-grid {
-    grid-template-columns: 1fr;
+  .home {
+    padding: 20px 15px;
+  }
+  
+  .hero-section {
+    margin-bottom: 40px;
   }
   
   .hero-section h1 {
-    font-size: 2.5em;
+    font-size: 2.2em;
+  }
+  
+  .hero-section p {
+    font-size: 1em;
+  }
+  
+  .games-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .game-card {
+    padding: 20px;
+  }
+  
+  .game-icon {
+    font-size: 3em;
+    margin-bottom: 15px;
+  }
+  
+  .game-card h3 {
+    font-size: 1.3em;
+    margin-bottom: 10px;
+  }
+  
+  .game-card p {
+    font-size: 0.9em;
+    margin-bottom: 15px;
+  }
+  
+  .game-features {
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+  }
+  
+  .feature {
+    font-size: 0.8em;
+    padding: 4px 8px;
+  }
+  
+  .play-btn {
+    padding: 12px 20px;
+    font-size: 0.9em;
   }
   
   .stats-section {
     gap: 30px;
+    flex-direction: column;
+  }
+  
+  .stat {
+    text-align: center;
+  }
+  
+  .stat h4 {
+    font-size: 2.5em;
+  }
+  
+  .stat p {
+    font-size: 1em;
+  }
+  
+  .copyright {
+    margin-top: 40px;
+    padding: 20px 15px;
+  }
+  
+  .copyright p {
+    font-size: 0.9em;
   }
 }
 </style>
