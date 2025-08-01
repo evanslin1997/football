@@ -248,14 +248,17 @@ export default {
 @media (max-width: 768px) {
   .home {
     padding: 20px 15px;
+    /* 移除所有高度和滾動限制，讓內容自然流動 */
   }
   
   .hero-section {
-    margin-bottom: 40px;
+    margin-bottom: 60px;
+    padding-top: 20px;
   }
   
   .hero-section h1 {
     font-size: 2.2em;
+    margin-bottom: 20px;
   }
   
   .hero-section p {
@@ -264,55 +267,66 @@ export default {
   
   .games-grid {
     grid-template-columns: 1fr;
-    gap: 20px;
+    gap: 40px;
+    margin-bottom: 80px;
   }
   
   .game-card {
-    padding: 20px;
+    padding: 25px;
+    border-radius: 20px;
+    min-height: auto;
   }
   
   .game-icon {
-    font-size: 3em;
+    font-size: 3.5em;
     margin-bottom: 15px;
   }
   
   .game-card h3 {
-    font-size: 1.3em;
-    margin-bottom: 10px;
+    font-size: 1.4em;
+    margin-bottom: 12px;
   }
   
   .game-card p {
-    font-size: 0.9em;
-    margin-bottom: 15px;
+    font-size: 1em;
+    margin-bottom: 18px;
+    line-height: 1.5;
   }
   
   .game-features {
     flex-wrap: wrap;
     gap: 8px;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+    justify-content: center;
   }
   
   .feature {
     font-size: 0.8em;
-    padding: 4px 8px;
+    padding: 6px 12px;
+    border-radius: 15px;
   }
   
   .play-btn {
-    padding: 12px 20px;
-    font-size: 0.9em;
+    padding: 15px 25px;
+    font-size: 1em;
+    border-radius: 30px;
   }
   
   .stats-section {
     gap: 30px;
-    flex-direction: column;
+    flex-direction: row;
+    justify-content: space-around;
+    margin: 60px 0;
   }
   
   .stat {
     text-align: center;
+    flex: 1;
   }
   
   .stat h4 {
     font-size: 2.5em;
+    margin-bottom: 8px;
   }
   
   .stat p {
@@ -320,12 +334,14 @@ export default {
   }
   
   .copyright {
-    margin-top: 40px;
-    padding: 20px 15px;
+    margin-top: 60px;
+    padding: 40px 15px;
+    margin-bottom: 40px;
   }
   
   .copyright p {
     font-size: 0.9em;
+    margin: 8px 0;
   }
 }
 </style>
